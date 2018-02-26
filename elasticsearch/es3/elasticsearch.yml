@@ -1,0 +1,24 @@
+---
+## Default Elasticsearch configuration from elasticsearch-docker.
+## from https://github.com/elastic/elasticsearch-docker/blob/master/build/elasticsearch/elasticsearch.yml
+
+# Cluster config
+cluster.name: "docker-cluster"
+network.host: 0.0.0.0
+http.port: 9200
+node.name: ${HOSTNAME}
+
+# Cluster discovery
+discovery.zen.minimum_master_nodes: 2
+discovery.zen.ping.unicast.hosts:
+  - es1
+  - es2
+  - es3
+
+#X Pack settings
+xpack.security.enabled: false
+xpack.graph.enabled: false
+xpack.watcher.enabled: false
+
+# Dir path for backups
+path.repo: ["/backup"]

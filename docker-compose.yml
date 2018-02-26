@@ -1,0 +1,159 @@
+version: '2'
+services:
+  elasticsearch1:
+    container_name: es1
+    hostname: es1
+    restart: always
+    build:
+      context: elasticsearch/
+    environment:
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./elasticsearch/es1/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - es-data1:/usr/share/elasticsearch/data
+      - es-backup1:/backup
+    ports:
+      - 9200:9200
+    networks:
+      - esnet
+
+# Second container
+  elasticsearch2:
+    container_name: es2
+    hostname: es2
+    restart: always
+    build:
+      context: elasticsearch/
+    environment:
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./elasticsearch/es2/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - es-data2:/usr/share/elasticsearch/data
+      - es-backup2:/backup
+    networks:
+      - esnet
+
+# Thrid Container
+  elasticsearch3:
+    container_name: es3
+    hostname: es3
+    restart: always
+    build:
+      context: elasticsearch/
+    environment:
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./elasticsearch/es3/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - es-data3:/usr/share/elasticsearch/data
+      - es-backup3:/backup
+    networks:
+      - esnet
+
+  apm-server:
+    container_name: apm-server
+    hostname: apm-server
+    restart: always
+    build:
+      context: apm-server/
+    volumes:
+      #- ./apm-server/config/apm-server.yml:/usr/share/apm-server/apm-server.yml
+      - apm-data1:/usr/share/apm-server/data
+      - apm-backup1:/backup
+    ports:
+      - "8200:8200"
+    networks:
+      - esnet
+    depends_on:
+      - elasticsearch1
+
+  logstash:
+    container_name: logstash
+    hostname: logstash
+    restart: always
+    build:
+      context: logstash/
+    volumes:
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+    ports:
+      - "5000:5000"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    networks:
+      - esnet
+    depends_on:
+      - elasticsearch1
+
+  kibana:
+    container_name: kibana
+    hostname: kibana
+    restart: always
+    build:
+      context: kibana/
+    volumes:
+      - ./kibana/config/:/usr/share/kibana/config:ro
+    ports:
+      - "5601:5601"
+    networks:
+      - esnet
+    depends_on:
+      - elasticsearch1
+
+  nginx:
+    container_name: nginx
+    hostname: nginx
+    restart: always
+    build:
+      context: nginx/
+    volumes:
+      - ./nginx/conf.d/:/etc/nginx/conf.d:ro
+      - ./nginx/error/:/usr/share/nginx/html:ro
+    ports:
+      - "80:80"
+    networks:
+      - esnet
+    depends_on:
+      - kibana
+
+volumes:
+  # ES Containers Volumes
+  es-data1:
+    driver: local
+  es-data2:
+    driver: local
+  es-data3:
+    driver: local
+
+  # ES Backup Volumes
+  es-backup1:
+    driver: local
+  es-backup2:
+    driver: local
+  es-backup3:
+    driver: local
+
+  # APM Server Volume  
+  apm-data1:
+    driver: local
+
+  # APM Back Volume
+  apm-backup1:
+    driver: local
+
+networks:
+  esnet:
