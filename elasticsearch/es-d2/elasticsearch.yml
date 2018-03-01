@@ -20,8 +20,8 @@ xpack.graph.enabled: false
 xpack.watcher.enabled: false
 
 #Node Placement Settings
-node.master: true
-node.data: false
+node.master: false
+node.data: true
 node.ingest: false
 search.remote.connect: false
 

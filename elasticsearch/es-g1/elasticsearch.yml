@@ -20,9 +20,9 @@ xpack.graph.enabled: false
 xpack.watcher.enabled: false
 
 #Node Placement Settings
-node.master: true
+node.master: false
 node.data: false
-node.ingest: false
+node.ingest: true
 search.remote.connect: false
 
 # Dir path for backups
