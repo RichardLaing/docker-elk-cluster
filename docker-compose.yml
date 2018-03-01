@@ -1,6 +1,28 @@
 version: '2'
 services:
-  elasticsearch1:
+  elasticsearch-ingress1:
+    container_name: es-g1
+    hostname: es-g1
+    restart: always
+    build:
+      context: elasticsearch/
+    environment:
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./elasticsearch/es-g1/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - ./elasticsearch/es-g1/data:/usr/share/elasticsearch/data
+      - ./elasticsearch/backup:/usr/share/elasticsearch/backup
+    ports:
+      - 9200:9200
+    networks:
+      - esnet
+
+  elasticsearch-master1:
     container_name: es1
     hostname: es1
     restart: always
@@ -15,15 +37,13 @@ services:
         hard: -1
     volumes:
       - ./elasticsearch/es1/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
-      - es-data1:/usr/share/elasticsearch/data
-      - es-backup1:/backup
-    ports:
-      - 9200:9200
+      - ./elasticsearch/es1/data:/usr/share/elasticsearch/data
+      - ./elasticsearch/backup:/usr/share/elasticsearch/backup
     networks:
       - esnet
 
-# Second container
-  elasticsearch2:
+# Second Master Container
+  elasticsearch-master2:
     container_name: es2
     hostname: es2
     restart: always
@@ -38,13 +58,13 @@ services:
         hard: -1
     volumes:
       - ./elasticsearch/es2/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
-      - es-data2:/usr/share/elasticsearch/data
-      - es-backup2:/backup
+      - ./elasticsearch/es2/data:/usr/share/elasticsearch/data
+      - ./elasticsearch/backup:/usr/share/elasticsearch/backup
     networks:
       - esnet
 
-# Thrid Container
-  elasticsearch3:
+# Thrid Master Container
+  elasticsearch-master3:
     container_name: es3
     hostname: es3
     restart: always
@@ -59,8 +79,48 @@ services:
         hard: -1
     volumes:
       - ./elasticsearch/es3/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
-      - es-data3:/usr/share/elasticsearch/data
-      - es-backup3:/backup
+      - ./elasticsearch/es3/data:/usr/share/elasticsearch/data
+      - ./elasticsearch/backup:/usr/share/elasticsearch/backup
+    networks:
+      - esnet
+
+  elasticsearch-data1:
+    container_name: es-d1
+    hostname: es-d1
+    restart: always
+    build:
+      context: elasticsearch/
+    environment:
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./elasticsearch/es-d1/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - ./elasticsearch/es-d1/data:/usr/share/elasticsearch/data
+      - ./elasticsearch/backup:/usr/share/elasticsearch/backup
+    networks:
+      - esnet
+
+  elasticsearch-data2:
+    container_name: es-d2
+    hostname: es-d2
+    restart: always
+    build:
+      context: elasticsearch/
+    environment:
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./elasticsearch/es-d2/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - ./elasticsearch/es-d2/data:/usr/share/elasticsearch/data
+      - ./elasticsearch/backup:/usr/share/elasticsearch/backup
     networks:
       - esnet
 
@@ -72,14 +132,14 @@ services:
       context: apm-server/
     volumes:
       #- ./apm-server/config/apm-server.yml:/usr/share/apm-server/apm-server.yml
-      - apm-data1:/usr/share/apm-server/data
-      - apm-backup1:/backup
+      - ./apm-server/data:/usr/share/apm-server/data
+      - ./apm-server/backup:/usr/share/apm-server/backup
     ports:
       - "8200:8200"
     networks:
       - esnet
     depends_on:
-      - elasticsearch1
+      - elasticsearch-master1
 
   logstash:
     container_name: logstash
@@ -97,7 +157,7 @@ services:
     networks:
       - esnet
     depends_on:
-      - elasticsearch1
+      - elasticsearch-master1
 
   kibana:
     container_name: kibana
@@ -112,7 +172,7 @@ services:
     networks:
       - esnet
     depends_on:
-      - elasticsearch1
+      - elasticsearch-master1
 
   nginx:
     container_name: nginx
@@ -129,31 +189,6 @@ services:
       - esnet
     depends_on:
       - kibana
-
-volumes:
-  # ES Containers Volumes
-  es-data1:
-    driver: local
-  es-data2:
-    driver: local
-  es-data3:
-    driver: local
-
-  # ES Backup Volumes
-  es-backup1:
-    driver: local
-  es-backup2:
-    driver: local
-  es-backup3:
-    driver: local
-
-  # APM Server Volume  
-  apm-data1:
-    driver: local
-
-  # APM Back Volume
-  apm-backup1:
-    driver: local
 
 networks:
   esnet:
