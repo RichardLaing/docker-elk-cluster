@@ -37,6 +37,7 @@ services:
         hard: -1
     volumes:
       - ./elasticsearch/es1/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - ./elasticsearch/es1/license:/usr/share/elasticsearch/license:ro
       - ./elasticsearch/es1/data:/usr/share/elasticsearch/data
       - ./elasticsearch/backup:/usr/share/elasticsearch/backup
     networks:
@@ -124,23 +125,6 @@ services:
     networks:
       - esnet
 
-  apm-server:
-    container_name: apm-server
-    hostname: apm-server
-    restart: always
-    build:
-      context: apm-server/
-    volumes:
-      #- ./apm-server/config/apm-server.yml:/usr/share/apm-server/apm-server.yml
-      - ./apm-server/data:/usr/share/apm-server/data
-      - ./apm-server/backup:/usr/share/apm-server/backup
-    ports:
-      - "8200:8200"
-    networks:
-      - esnet
-    depends_on:
-      - elasticsearch-master1
-
   logstash:
     container_name: logstash
     hostname: logstash
@@ -151,9 +135,9 @@ services:
       - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
     ports:
-      - "5000:5000"
+      - "5044:5044"
     environment:
-      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+      LS_JAVA_OPTS: "-Xmx1024m -Xms1024m"
     networks:
       - esnet
     depends_on:
@@ -188,6 +172,25 @@ services:
     networks:
       - esnet
     depends_on:
+      - kibana
+
+  apm-server:
+    container_name: apm-server
+    hostname: apm-server
+    restart: always
+    build:
+      context: apm-server/
+    volumes:
+      - ./apm-server/config/apm-server.yml:/usr/share/apm-server/apm-server.yml:ro
+      - ./apm-server/config/fields.yml:/usr/share/apm-server/fields.yml:ro
+      - ./apm-server/data:/usr/share/apm-server/data
+    ports:
+      - "8200:8200"
+    networks:
+      - esnet
+    depends_on:
+      - elasticsearch-master1
+      - elasticsearch-ingress1
       - kibana
 
 networks:

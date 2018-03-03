@@ -1,9 +1,7 @@
 #!/bin/bash
 
-mkdir nginx/error
+rm -r ./elasticsearch/es*/data/*
 
-wget https://raw.githubusercontent.com/AndiDittrich/HttpErrorPages/master/dist/pages.tar -O /tmp/pages.tar
-
-tar -xvf /tmp/pages.tar -C nginx/error --strip-components=1
+rm -r ./elasticsearch/es-d*/data/*
 
 exit

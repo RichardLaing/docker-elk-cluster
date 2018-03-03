@@ -22,8 +22,10 @@ apm-server:
 
 #==================== Elasticsearch template setting ==========================
 setup.template.settings:
-  index.number_of_shards: 1
+  index.number_of_shards: 3
   index.codec: best_compression
+  setup.template.name: "apm-server"
+  setup.template.pattern: "apm-*"
 
 #============================== Dashboards =====================================
 # These settings control loading the sample dashboards to the Kibana index. Loading
@@ -50,7 +52,7 @@ setup.kibana:
 #-------------------------- Elasticsearch output ------------------------------
 output.elasticsearch:
   # Array of hosts to connect to.
-  hosts: ["es1:9200"]
+  hosts: ["es-g1:9200"]
 
   # Optional protocol and basic auth credentials.
   #protocol: "https"
